@@ -1,0 +1,58 @@
+package yangc.context.app.impl;
+
+import yangc.aop.creator.impl.AopProxyCreator;
+import yangc.bean.factory.BeanFactory;
+import yangc.bean.factory.impl.DefaultBeanFactory;
+import yangc.bean.postProcessor.AopPostProcessor;
+import yangc.context.app.ApplicationContext;
+import yangc.context.source.Resource;
+import yangc.context.source.ResourceFactory;
+import yangc.context.source.impl.ClassPathResource;
+import yangc.context.source.impl.FileSystemResource;
+import yangc.context.source.impl.UrlResource;
+
+public abstract class AbstractApplicationContext implements ApplicationContext, ResourceFactory {
+	protected BeanFactory factory;
+	protected AopProxyCreator creator;
+
+	public AbstractApplicationContext() {
+		this.factory = new DefaultBeanFactory();
+		this.creator = new AopProxyCreator();
+		creator.setBeanFactory(factory);
+		factory.registerBeanPostProcessor(creator);
+	}
+
+	@Override
+	public Object getBean(String beanName) throws Exception {
+		return factory.getBean(beanName);
+	}
+
+	@Override
+	public void registerBeanPostProcessor(AopPostProcessor processor) {
+		factory.registerBeanPostProcessor(processor);
+	}
+
+	@Override
+	public Resource getResource(String locs) throws Exception {
+		if (locs.contains(":")) {
+			String[] split = locs.split(":");
+			StringBuilder sb = new StringBuilder();
+			sb.append(split[1]);
+			for (int i = 2; i < split.length; i++) {
+				sb.append(":" + split[i]);
+			}
+			switch (split[0]) {
+			case "url":
+				return new UrlResource(sb.toString());
+			case "classpath":
+				return new ClassPathResource(null, sb.toString(), null);
+			case "file":
+				return new FileSystemResource(sb.toString());
+			default:
+				throw new IllegalArgumentException("Malformed config xml file");
+			}
+		}
+		return null;
+	}
+
+}
