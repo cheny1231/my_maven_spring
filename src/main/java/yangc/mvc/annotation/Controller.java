@@ -1,4 +1,4 @@
-package yangc.context.annotation;
+package yangc.mvc.annotation;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
@@ -7,8 +7,8 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 @Retention(RetentionPolicy.RUNTIME)
-@Target({ ElementType.TYPE, ElementType.METHOD })
+@Target(ElementType.TYPE)
 @Documented
-public @interface RequestMapping {
+public @interface Controller {
 	String value() default "";
 }

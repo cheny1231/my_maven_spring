@@ -1,5 +1,7 @@
 package yangc.context.app.impl;
 
+import java.util.List;
+
 import yangc.aop.creator.impl.AopProxyCreator;
 import yangc.bean.factory.BeanFactory;
 import yangc.bean.factory.impl.DefaultBeanFactory;
@@ -55,4 +57,13 @@ public abstract class AbstractApplicationContext implements ApplicationContext, 
 		return null;
 	}
 
+	@Override
+	public List<String> getBeanNameForType(Class<?> clazz) {
+		return factory.getBeanNameForType(clazz);
+	}
+
+	@Override
+	public Class<?> getType(String beanName) {
+		return factory.getType(beanName);
+	}
 }

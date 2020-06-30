@@ -11,9 +11,9 @@ import yangc.aop.pointcut.impl.RegexExpressionPointCutResolver;
 import yangc.bean.definition.BeanDefinitionRegistry;
 import yangc.bean.definition.impl.DefaultBeanDefinition;
 import yangc.context.annotation.Component;
-import yangc.context.annotation.Controller;
 import yangc.context.annotation.PointCut;
 import yangc.context.source.Resource;
+import yangc.mvc.annotation.Controller;
 
 public class AnnotationDefinitionReader extends AbstractDefinitionReader {
 	public static final String SCAN_PACKAGE = "scanPackage";

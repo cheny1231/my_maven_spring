@@ -324,4 +324,26 @@ public class DefaultBeanFactory implements BeanFactory, BeanDefinitionRegistry, 
 		return instance;
 	}
 
+	@Override
+	public List<String> getBeanNameForType(Class<?> clazz) {
+		List<String> beanNames = new LinkedList<>();
+
+		for (Map.Entry<String, BeanDefinition> entry : beanDefinitionMap.entrySet()) {
+			Class<?> beanClass = entry.getValue().getBeanClass();
+			if (clazz.isAssignableFrom(beanClass)) {
+				beanNames.add(entry.getKey());
+			}
+		}
+
+		return beanNames;
+	}
+
+	@Override
+	public Class<?> getType(String beanName) {
+		if (beanDefinitionMap.containsKey(beanName)) {
+			return beanDefinitionMap.get(beanName).getBeanClass();
+		}
+		return null;
+	}
+
 }
