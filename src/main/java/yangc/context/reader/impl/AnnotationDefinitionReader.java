@@ -37,6 +37,7 @@ public class AnnotationDefinitionReader extends AbstractDefinitionReader {
 
 	private void parse(Resource resource) throws Exception {
 		InputStream inputStream = resource.getInputStream();
+		System.out.println("parsing annotation input stream: " + inputStream);
 		config.load(inputStream);
 		String packageName = config.getProperty(SCAN_PACKAGE);
 		doRegister(packageName);

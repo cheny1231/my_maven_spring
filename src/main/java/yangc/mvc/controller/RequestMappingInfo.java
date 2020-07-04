@@ -48,7 +48,7 @@ public class RequestMappingInfo {
 		if (!request.getMethod().equals(methodRequestMapping.method().name())) {
 			return false;
 		}
-		if (!request.getPathInfo().equals(methodRequestMapping.path())) {
+		if (!request.getServletPath().equals(methodRequestMapping.path())) {
 			return false;
 		}
 		String queryString = request.getQueryString();

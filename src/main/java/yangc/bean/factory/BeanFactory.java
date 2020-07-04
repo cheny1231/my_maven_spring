@@ -2,12 +2,12 @@ package yangc.bean.factory;
 
 import java.util.List;
 
-import yangc.bean.postProcessor.AopPostProcessor;
+import yangc.bean.postProcessor.BeanPostProcessor;
 
 public interface BeanFactory {
 	Object getBean(String beanName) throws Exception;
 
-	void registerBeanPostProcessor(AopPostProcessor processor);
+	void registerBeanPostProcessor(BeanPostProcessor processor);
 
 	List<String> getBeanNameForType(Class<?> clazz);
 

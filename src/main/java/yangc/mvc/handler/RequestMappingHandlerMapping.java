@@ -21,8 +21,10 @@ public class RequestMappingHandlerMapping implements HandlerMapping, Application
 
 	@Override
 	public RequestMappingInfo getHandler(HttpServletRequest request) {
-		String url = request.getPathInfo();
+		System.out.println("Getting handler for " + request);
+		String url = request.getServletPath();
 		for (RequestMappingInfo info : urlMaps.get(url)) {
+			System.out.println("Found mapping info: " + info);
 			if (info.isMatch(request)) {
 				return info;
 			}
@@ -38,6 +40,11 @@ public class RequestMappingHandlerMapping implements HandlerMapping, Application
 	@Override
 	public void afterPropertiesSet() {
 		List<String> beanNameForType = context.getBeanNameForType(Object.class);
+		System.out.println("Got bean names: ");
+		for (String beanName : beanNameForType) {
+			System.out.println(beanName);
+		}
+		System.out.println("End of bean names.");
 		for (String beanName : beanNameForType) {
 			Class<?> type = context.getType(beanName);
 			if (isController(type)) {
@@ -47,6 +54,7 @@ public class RequestMappingHandlerMapping implements HandlerMapping, Application
 	}
 
 	private void detectHandlerMethod(Class<?> clazz, String beanName) {
+		System.out.println("Detecting handler method for " + beanName);
 		Object bean = null;
 		try {
 			bean = context.getBean(beanName);
@@ -55,6 +63,8 @@ public class RequestMappingHandlerMapping implements HandlerMapping, Application
 			e.printStackTrace();
 		}
 		Method[] methods = clazz.getMethods();
+		System.out.println("Found methods : " + methods[0].getName() + " for " + beanName);
+		System.out.println("Got bean: " + bean);
 		for (Method method : methods) {
 			if (method.isAnnotationPresent(RequestMapping.class)) {
 				RequestMapping requestMapping = method.getAnnotation(RequestMapping.class);
@@ -67,6 +77,7 @@ public class RequestMappingHandlerMapping implements HandlerMapping, Application
 				if (!urlMaps.containsKey(path)) {
 					urlMaps.put(path, new ArrayList<>());
 				}
+				System.out.println("Putting mappingInfo for " + path);
 				urlMaps.get(path).add(info);
 				requestMappingInfos.add(info);
 			}

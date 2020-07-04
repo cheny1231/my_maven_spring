@@ -1,25 +1,19 @@
 package yangc.mvc;
 
 import java.io.IOException;
-import java.lang.annotation.Annotation;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
-import javax.servlet.ServletRequest;
-import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import yangc.context.app.ApplicationContext;
 import yangc.context.app.impl.AnnotationApplicationContext;
-import yangc.mvc.annotation.RequestParam;
 import yangc.mvc.controller.RequestMappingInfo;
-import yangc.mvc.handler.HandlerAdapter;
+import yangc.mvc.handler.HandlerAdaptor;
 import yangc.mvc.handler.HandlerMapping;
 import yangc.mvc.handler.RequestMappingHandlerAdaptor;
 import yangc.mvc.handler.RequestMappingHandlerMapping;
@@ -29,14 +23,14 @@ public class DispatcherServlet extends HttpServlet {
 
 	private ApplicationContext context;
 	private List<HandlerMapping> handlerMappings;
-	private List<HandlerAdapter> handlerAdapters;
+	private List<HandlerAdaptor> handlerAdaptors;
 
 	@Override
 	public void init(ServletConfig config) throws ServletException {
 		super.init(config);
 
 		try {
-			context = new AnnotationApplicationContext("classpath:applicationContext.properties");
+			context = new AnnotationApplicationContext("classpath:ApplicationContext.properties");
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -46,6 +40,7 @@ public class DispatcherServlet extends HttpServlet {
 	}
 
 	private void initHandlerMapping() {
+		System.out.println("Initing handler mapping...");
 		handlerMappings = new ArrayList<>();
 		RequestMappingHandlerMapping mapping = new RequestMappingHandlerMapping();
 		mapping.setApplicationContext(context);
@@ -55,9 +50,9 @@ public class DispatcherServlet extends HttpServlet {
 	}
 
 	private void initHandlerAdapter() {
-		handlerAdapters = new ArrayList<>();
+		handlerAdaptors = new ArrayList<>();
 		RequestMappingHandlerAdaptor adaptor = new RequestMappingHandlerAdaptor();
-
+		handlerAdaptors.add(adaptor);
 	}
 
 	@Override
@@ -66,18 +61,14 @@ public class DispatcherServlet extends HttpServlet {
 	}
 
 	private void doDispatcher(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+		System.out.println("Dispatching request: " + req);
 		RequestMappingInfo info = getMappinginfo(req);
-		if (info == null) {
+		HandlerAdaptor adaptor = this.getAdaptor(req);
+		if (info == null || adaptor == null) {
 			noHandlerFound(req, resp);
 		}
-		Object[] args = parseArgs(req, resp, info.getMethod());
-		try {
-			info.getMethod().invoke(info.getHandler(), args);
-		} catch (InvocationTargetException e) {
-			e.printStackTrace();
-		} catch (IllegalAccessException e) {
-			e.printStackTrace();
-		}
+		adaptor.setRequestMappingInfo(info);
+		adaptor.handle(req, resp);
 	}
 
 	private void noHandlerFound(HttpServletRequest req, HttpServletResponse resp) throws IOException {
@@ -94,28 +85,13 @@ public class DispatcherServlet extends HttpServlet {
 		return null;
 	}
 
-	private Object[] parseArgs(HttpServletRequest req, HttpServletResponse resp, Method method) {
-		Class<?>[] paramClasses = method.getParameterTypes();
-		Object[] args = new Object[paramClasses.length];
-		int args_index = 0;
-		for (int i = 0; i < paramClasses.length; i++) {
-			if (ServletRequest.class.isAssignableFrom(paramClasses[i])) {
-				args[args_index++] = req;
-			}
-			if (ServletResponse.class.isAssignableFrom(paramClasses[i])) {
-				args[args_index++] = resp;
-			}
-			Annotation[] paramAns = method.getParameterAnnotations()[i];
-			if (paramAns.length > 0) {
-				for (Annotation annotation : paramAns) {
-					if (RequestParam.class.isAssignableFrom(annotation.getClass())) {
-						RequestParam rp = (RequestParam) annotation;
-						args[args_index++] = req.getParameter(rp.value());
-					}
-				}
+	private HandlerAdaptor getAdaptor(HttpServletRequest req) {
+		for (HandlerAdaptor adaptor : handlerAdaptors) {
+			if (adaptor.isMatch(req)) {
+				return adaptor;
 			}
 		}
-		return args;
+		return null;
 	}
 
 }

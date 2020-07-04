@@ -5,7 +5,8 @@ import java.util.List;
 import yangc.aop.creator.impl.AopProxyCreator;
 import yangc.bean.factory.BeanFactory;
 import yangc.bean.factory.impl.DefaultBeanFactory;
-import yangc.bean.postProcessor.AopPostProcessor;
+import yangc.bean.postProcessor.BeanPostProcessor;
+import yangc.bean.postProcessor.impl.AutowiredAnnotationBeanPostProcessor;
 import yangc.context.app.ApplicationContext;
 import yangc.context.source.Resource;
 import yangc.context.source.ResourceFactory;
@@ -16,12 +17,16 @@ import yangc.context.source.impl.UrlResource;
 public abstract class AbstractApplicationContext implements ApplicationContext, ResourceFactory {
 	protected BeanFactory factory;
 	protected AopProxyCreator creator;
+	protected AutowiredAnnotationBeanPostProcessor autowiredProcessor;
 
 	public AbstractApplicationContext() {
 		this.factory = new DefaultBeanFactory();
 		this.creator = new AopProxyCreator();
+		this.autowiredProcessor = new AutowiredAnnotationBeanPostProcessor();
 		creator.setBeanFactory(factory);
+		autowiredProcessor.setBeanFactory(factory);
 		factory.registerBeanPostProcessor(creator);
+		factory.registerBeanPostProcessor(autowiredProcessor);
 	}
 
 	@Override
@@ -30,7 +35,7 @@ public abstract class AbstractApplicationContext implements ApplicationContext, 
 	}
 
 	@Override
-	public void registerBeanPostProcessor(AopPostProcessor processor) {
+	public void registerBeanPostProcessor(BeanPostProcessor processor) {
 		factory.registerBeanPostProcessor(processor);
 	}
 

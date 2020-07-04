@@ -25,6 +25,7 @@ public class ClassPathResource implements Resource {
 			if (classLoader != null) {
 				return classLoader.getResourceAsStream(path);
 			}
+			System.out.println("getting resourse as stream: " + path);
 			return this.getClass().getClassLoader().getResourceAsStream(path);
 		}
 		return null;

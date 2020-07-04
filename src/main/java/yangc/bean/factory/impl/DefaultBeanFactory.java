@@ -18,6 +18,8 @@ import yangc.bean.definition.BeanDefinition;
 import yangc.bean.definition.BeanDefinitionRegistry;
 import yangc.bean.factory.BeanFactory;
 import yangc.bean.postProcessor.AopPostProcessor;
+import yangc.bean.postProcessor.BeanPostProcessor;
+import yangc.bean.postProcessor.impl.AutowiredAnnotationBeanPostProcessor;
 import yangc.bean.reference.BeanReference;
 
 public class DefaultBeanFactory implements BeanFactory, BeanDefinitionRegistry, Closeable {
@@ -28,7 +30,7 @@ public class DefaultBeanFactory implements BeanFactory, BeanDefinitionRegistry, 
 
 	private ThreadLocal<Set<String>> initializedBeans = new ThreadLocal<>();
 
-	List<AopPostProcessor> postProcessors = new ArrayList<>();
+	List<BeanPostProcessor> postProcessors = new ArrayList<>();
 
 	@Override
 	public void register(BeanDefinition bd, String beanName) {
@@ -74,7 +76,7 @@ public class DefaultBeanFactory implements BeanFactory, BeanDefinitionRegistry, 
 		if (instance != null) {
 			return instance;
 		}
-
+		System.out.println("Creating bean: " + beanName);
 		if (!beanDefinitionMap.containsKey(beanName)) {
 			System.out.println("Bean definition [" + beanName + "] does not exist");
 			System.out.println("R U looking for:");
@@ -97,7 +99,7 @@ public class DefaultBeanFactory implements BeanFactory, BeanDefinitionRegistry, 
 
 		BeanDefinition beanDefinition = beanDefinitionMap.get(beanName);
 		Class<?> beanClass = beanDefinition.getBeanClass();
-
+		System.out.println("Found bean class: " + beanClass);
 		if (beanClass != null) {
 			instance = createBeanByConstruct(beanDefinition);
 			if (instance == null) {
@@ -113,9 +115,11 @@ public class DefaultBeanFactory implements BeanFactory, BeanDefinitionRegistry, 
 
 		beans.remove(beanName);
 
+		instance = applyAnnotationBeanPostProcessor(instance, beanName);
 		instance = applyAopBeanPostProcessor(instance, beanName);
-
+		System.out.println("Finish creating bean: " + instance);
 		if (instance != null && beanDefinition.isSingleton()) {
+			System.out.println("Put bean into beanMap");
 			beanMap.put(beanName, instance);
 		}
 
@@ -135,12 +139,15 @@ public class DefaultBeanFactory implements BeanFactory, BeanDefinitionRegistry, 
 	}
 
 	private Object createBeanByConstruct(BeanDefinition bd) {
+		System.out.println("Creating bean by constructor...");
 		Object instance = null;
 		try {
 			Object[] constructorArgs = parseConstructorArgs(bd.getConstructorArgument());
 			Constructor<?> constructor = matchConstructor(bd, constructorArgs);
+			System.out.println("Got constructor: " + constructor);
 			if (constructor != null) {
 				instance = constructor.newInstance(constructorArgs);
+				System.out.println("Created new instance: " + instance);
 			} else {
 				instance = bd.getBeanClass().newInstance();
 			}
@@ -311,15 +318,28 @@ public class DefaultBeanFactory implements BeanFactory, BeanDefinitionRegistry, 
 	}
 
 	@Override
-	public void registerBeanPostProcessor(AopPostProcessor processor) {
+	public void registerBeanPostProcessor(BeanPostProcessor processor) {
 		postProcessors.add(processor);
 		System.out.println("Registering processor " + processor);
 	}
 
+	private Object applyAnnotationBeanPostProcessor(Object instance, String beanName) throws Exception {
+		System.out.println("Applying " + postProcessors.size() + " annotation processors to " + beanName);
+		for (BeanPostProcessor processor : postProcessors) {
+			if (processor instanceof AutowiredAnnotationBeanPostProcessor) {
+				instance = ((AutowiredAnnotationBeanPostProcessor) processor).postProcessAfterInitialization(instance,
+						beanName);
+			}
+		}
+		return instance;
+	}
+
 	private Object applyAopBeanPostProcessor(Object instance, String beanName) throws Exception {
-		System.out.println("Applying " + postProcessors.size() + " processors to " + beanName);
-		for (AopPostProcessor processor : postProcessors) {
-			instance = processor.postProcessWeaving(instance, beanName);
+		System.out.println("Applying " + postProcessors.size() + " aop processors to " + beanName);
+		for (BeanPostProcessor processor : postProcessors) {
+			if (processor instanceof AopPostProcessor) {
+				instance = ((AopPostProcessor) processor).postProcessWeaving(instance, beanName);
+			}
 		}
 		return instance;
 	}
