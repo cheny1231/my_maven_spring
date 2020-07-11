@@ -16,7 +16,16 @@ public class RegexExpressionPointCutResolver implements RegexExpressionPointCut 
 		String className = RegexMatchUtils.matchClassName(expression);
 
 		String name = targetClass.getName();
-		return Pattern.matches(className, name);
+		if (Pattern.matches(className, name)) {
+			return true;
+		}
+		Class<?>[] interfaces = targetClass.getInterfaces();
+		for (Class<?> interfaze : interfaces) {
+			if (Pattern.matches(className, interfaze.getName())) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	@Override

@@ -3,7 +3,7 @@ package yangc.test;
 import yangc.context.annotation.Component;
 
 @Component
-public class User {
+public class User implements UserInterface {
 	private String name;
 	private String password;
 	private int age;
@@ -40,8 +40,9 @@ public class User {
 		System.out.println("Destroying user...");
 	}
 
+	@Override
 	public String sayHello() {
-		System.out.println("Hello");
+		System.out.println("Hello world");
 		return "Hello!";
 	}
 }

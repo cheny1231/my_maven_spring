@@ -16,7 +16,6 @@ public class JDKDynamicProxy implements AopProxy, InvocationHandler {
 	private BeanFactory factory;
 
 	public JDKDynamicProxy(Object target, List<Advisor> advisors, BeanFactory factory) {
-		System.out.println("Creating JDKDynamicProxy for " + advisors.size() + " advisors...");
 		this.target = target;
 		this.advisors = advisors;
 		this.factory = factory;
@@ -25,18 +24,19 @@ public class JDKDynamicProxy implements AopProxy, InvocationHandler {
 	@Override
 	public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
 		System.out.println("Invoking JDKDynamicProxy for " + method + "...");
-		return AopUtils.applyAdvice(args, proxy, getMatchAdvisors(target.getClass(), advisors), args, method, factory);
+		return AopUtils.applyAdvice(target, proxy, getMatchAdvisors(target.getClass(), advisors), args, method,
+				factory);
 	}
 
 	@Override
 	public Object getProxy() {
-		return getProxy(this.getClass().getClassLoader());
+		return getProxy(target.getClass().getClassLoader());
 	}
 
 	@Override
 	public Object getProxy(ClassLoader classLoader) {
 		System.out.println("Creating JDK proxy for " + target);
-		return Proxy.newProxyInstance(classLoader, this.getClass().getInterfaces(), this);
+		return Proxy.newProxyInstance(classLoader, target.getClass().getInterfaces(), this);
 	}
 
 }

@@ -7,7 +7,7 @@ import yangc.mvc.annotation.RequestMapping;
 @Controller
 public class UserController {
 	@Autowired
-	private User user;
+	private UserInterface user;
 
 	@RequestMapping(path = "/user")
 	public String get() {

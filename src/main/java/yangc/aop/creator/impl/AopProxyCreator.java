@@ -28,8 +28,6 @@ public class AopProxyCreator implements AopPostProcessor, BeanFactoryAware, Advi
 	@Override
 	public void registerAdvisor(Advisor advisor) {
 		advisors.add(advisor);
-		System.out.println("Registering advisor...");
-
 	}
 
 	@Override

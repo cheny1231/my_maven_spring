@@ -18,7 +18,7 @@ public class Main {
 	private static void testAnnotation() throws Exception {
 		ApplicationContext applicationContext = new AnnotationApplicationContext(
 				"classpath:applicationContext.properties");
-		User user = (User) applicationContext.getBean("yangc.test.User");
+		UserInterface user = (UserInterface) applicationContext.getBean("yangc.test.User");
 		user.sayHello();
 	}
 
